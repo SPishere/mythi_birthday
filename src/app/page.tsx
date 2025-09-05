@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import PositiveMessages from "./components/PositiveMessages";
 
 export default function Home() {
   // Confetti animation using canvas
@@ -49,6 +50,10 @@ export default function Home() {
         <p className="text-2xl text-blue-700 font-bold mb-8 animate-pulse">
           Wishing you a day that&apos;s super fun, crazy awesome, and full of surprises!
         </p>
+        
+        {/* Positive Messages Feature */}
+        <PositiveMessages />
+        
         {/* Playful surprise button (sound effect) */}
         <button
           className="bg-yellow-400 hover:bg-pink-400 text-white font-bold py-2 px-6 rounded-full shadow-lg transition-all duration-300 text-xl mb-8"
