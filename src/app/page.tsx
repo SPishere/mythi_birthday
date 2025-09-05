@@ -1,103 +1,137 @@
-import Image from "next/image";
+
+import { useEffect, useRef } from "react";
 
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  // Confetti animation using canvas
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    const W = window.innerWidth;
+    const H = window.innerHeight;
+    canvas.width = W;
+    canvas.height = H;
+    const confettiColors = ["#FF69B4", "#FFD700", "#00FFFF", "#FF6347", "#32CD32", "#8A2BE2"];
+    const confetti = Array.from({ length: 120 }, () => ({
+      x: Math.random() * W,
+      y: Math.random() * H,
+      r: Math.random() * 8 + 4,
+      d: Math.random() * 2 + 1,
+      color: confettiColors[Math.floor(Math.random() * confettiColors.length)],
+    }));
+    function draw() {
+      ctx.clearRect(0, 0, W, H);
+      confetti.forEach((c) => {
+        ctx.beginPath();
+        ctx.arc(c.x, c.y, c.r, 0, Math.PI * 2);
+        ctx.fillStyle = c.color;
+        ctx.fill();
+        c.y += c.d;
+        if (c.y > H) c.y = 0;
+      });
+      requestAnimationFrame(draw);
+    }
+    draw();
+  }, []);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  return (
+    <div className="relative min-h-screen bg-gradient-to-br from-pink-200 via-yellow-100 to-blue-200 flex flex-col items-center justify-center overflow-hidden">
+      <canvas ref={canvasRef} className="fixed top-0 left-0 w-full h-full pointer-events-none z-0" />
+      <div className="z-10 text-center py-12">
+        <h1 className="text-6xl font-extrabold text-pink-600 drop-shadow-lg animate-bounce mb-4">
+          🎉 Happy Birthday, Mythi! 🎂
+        </h1>
+        <p className="text-2xl text-blue-700 font-bold mb-8 animate-pulse">
+          Wishing you a day that's super fun, crazy awesome, and full of surprises!
+        </p>
+        {/* Playful surprise button (sound effect) */}
+        <button
+          className="bg-yellow-400 hover:bg-pink-400 text-white font-bold py-2 px-6 rounded-full shadow-lg transition-all duration-300 text-xl mb-8"
+          onClick={() => {
+            const audio = new Audio("https://cdn.pixabay.com/audio/2022/10/16/audio_12b6b9b7b7.mp3");
+            audio.play();
+          }}
+        >
+          Click for a Surprise Sound! 🔊
+        </button>
+        {/* Gallery Section */}
+        <div className="bg-white/80 rounded-xl p-6 shadow-xl mb-8">
+          <h2 className="text-3xl font-bold text-purple-600 mb-4">Fun Memories Gallery</h2>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+            {/* Placeholder images, replace with real ones! */}
+            <img src="https://placekitten.com/200/200" alt="Memory 1" className="rounded-lg shadow-md" />
+            <img src="https://placebear.com/200/200" alt="Memory 2" className="rounded-lg shadow-md" />
+            <img src="https://placebeard.it/200x200" alt="Memory 3" className="rounded-lg shadow-md" />
+            <img src="https://placekitten.com/201/200" alt="Memory 4" className="rounded-lg shadow-md" />
+            <img src="https://placebear.com/201/200" alt="Memory 5" className="rounded-lg shadow-md" />
+            <img src="https://placebeard.it/201x200" alt="Memory 6" className="rounded-lg shadow-md" />
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+        {/* Message Board Section */}
+        <div className="bg-pink-100 rounded-xl p-6 shadow-xl mb-8">
+          <h2 className="text-3xl font-bold text-yellow-600 mb-4">Message Board</h2>
+          <MessageBoard />
+        </div>
+        {/* Mini-game placeholder */}
+        <div className="bg-blue-100 rounded-xl p-6 shadow-xl">
+          <h2 className="text-3xl font-bold text-pink-600 mb-4">Mini-Game: Click the Cake!</h2>
+          <MiniGame />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Message Board Component
+import { useState } from "react";
+function MessageBoard() {
+  const [messages, setMessages] = useState<string[]>([]);
+  const [input, setInput] = useState("");
+  return (
+    <div>
+      <div className="mb-4">
+        <input
+          className="border-2 border-yellow-400 rounded-lg px-4 py-2 w-64 mr-2"
+          type="text"
+          value={input}
+          placeholder="Leave a message for Mythi!"
+          onChange={(e) => setInput(e.target.value)}
+        />
+        <button
+          className="bg-pink-400 text-white font-bold px-4 py-2 rounded-lg"
+          onClick={() => {
+            if (input.trim()) {
+              setMessages([input, ...messages]);
+              setInput("");
+            }
+          }}
+        >Send</button>
+      </div>
+      <ul className="space-y-2">
+        {messages.map((msg, idx) => (
+          <li key={idx} className="bg-yellow-200 rounded-lg px-4 py-2 text-lg font-semibold">
+            {msg}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+// Mini-Game Component
+function MiniGame() {
+  const [score, setScore] = useState(0);
+  return (
+    <div className="flex flex-col items-center">
+      <button
+        className="bg-pink-400 rounded-full p-4 shadow-lg hover:scale-110 transition-transform"
+        onClick={() => setScore(score + 1)}
+      >
+        🎂
+      </button>
+      <p className="mt-4 text-xl font-bold text-purple-700">Cake Clicks: {score}</p>
     </div>
   );
 }
