@@ -1,5 +1,7 @@
+"use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 
 export default function Home() {
   // Confetti animation using canvas
@@ -22,12 +24,13 @@ export default function Home() {
       color: confettiColors[Math.floor(Math.random() * confettiColors.length)],
     }));
     function draw() {
-      ctx.clearRect(0, 0, W, H);
+      // TypeScript now knows ctx is defined because of the early return above
+      ctx!.clearRect(0, 0, W, H);
       confetti.forEach((c) => {
-        ctx.beginPath();
-        ctx.arc(c.x, c.y, c.r, 0, Math.PI * 2);
-        ctx.fillStyle = c.color;
-        ctx.fill();
+        ctx!.beginPath();
+        ctx!.arc(c.x, c.y, c.r, 0, Math.PI * 2);
+        ctx!.fillStyle = c.color;
+        ctx!.fill();
         c.y += c.d;
         if (c.y > H) c.y = 0;
       });
@@ -44,7 +47,7 @@ export default function Home() {
           🎉 Happy Birthday, Mythi! 🎂
         </h1>
         <p className="text-2xl text-blue-700 font-bold mb-8 animate-pulse">
-          Wishing you a day that's super fun, crazy awesome, and full of surprises!
+          Wishing you a day that&apos;s super fun, crazy awesome, and full of surprises!
         </p>
         {/* Playful surprise button (sound effect) */}
         <button
@@ -61,12 +64,24 @@ export default function Home() {
           <h2 className="text-3xl font-bold text-purple-600 mb-4">Fun Memories Gallery</h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
             {/* Placeholder images, replace with real ones! */}
-            <img src="https://placekitten.com/200/200" alt="Memory 1" className="rounded-lg shadow-md" />
-            <img src="https://placebear.com/200/200" alt="Memory 2" className="rounded-lg shadow-md" />
-            <img src="https://placebeard.it/200x200" alt="Memory 3" className="rounded-lg shadow-md" />
-            <img src="https://placekitten.com/201/200" alt="Memory 4" className="rounded-lg shadow-md" />
-            <img src="https://placebear.com/201/200" alt="Memory 5" className="rounded-lg shadow-md" />
-            <img src="https://placebeard.it/201x200" alt="Memory 6" className="rounded-lg shadow-md" />
+            <div className="relative w-[200px] h-[200px] rounded-lg overflow-hidden shadow-md">
+              <Image src="https://placekitten.com/200/200" alt="Memory 1" fill className="object-cover" />
+            </div>
+            <div className="relative w-[200px] h-[200px] rounded-lg overflow-hidden shadow-md">
+              <Image src="https://placebear.com/200/200" alt="Memory 2" fill className="object-cover" />
+            </div>
+            <div className="relative w-[200px] h-[200px] rounded-lg overflow-hidden shadow-md">
+              <Image src="https://placebeard.it/200x200" alt="Memory 3" fill className="object-cover" />
+            </div>
+            <div className="relative w-[200px] h-[200px] rounded-lg overflow-hidden shadow-md">
+              <Image src="https://placekitten.com/201/200" alt="Memory 4" fill className="object-cover" />
+            </div>
+            <div className="relative w-[200px] h-[200px] rounded-lg overflow-hidden shadow-md">
+              <Image src="https://placebear.com/201/200" alt="Memory 5" fill className="object-cover" />
+            </div>
+            <div className="relative w-[200px] h-[200px] rounded-lg overflow-hidden shadow-md">
+              <Image src="https://placebeard.it/201x200" alt="Memory 6" fill className="object-cover" />
+            </div>
           </div>
         </div>
         {/* Message Board Section */}
@@ -85,7 +100,6 @@ export default function Home() {
 }
 
 // Message Board Component
-import { useState } from "react";
 function MessageBoard() {
   const [messages, setMessages] = useState<string[]>([]);
   const [input, setInput] = useState("");
