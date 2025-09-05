@@ -6,30 +6,75 @@ export default function MiniGame() {
   const [score, setScore] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   
-  // Load initial click count from the database
+  // Load initial click count from Google Sheets
   useEffect(() => {
     async function loadData() {
       try {
-        const response = await fetch('/api/db');
-        const data = await response.json();
-        setScore(data.cakeClicks);
-        setIsLoading(false);
+        // First try to get data from Google Sheets
+        const sheetResponse = await fetch('/api/sheet-read');
+        const sheetData = await sheetResponse.json();
+        
+        if (sheetData && typeof sheetData.cakeClicks === 'number') {
+          setScore(sheetData.cakeClicks);
+          setIsLoading(false);
+        } else {
+          // Fallback to file-based database
+          const response = await fetch('/api/db');
+          const data = await response.json();
+          setScore(data.cakeClicks);
+          setIsLoading(false);
+        }
       } catch (error) {
         console.error('Error loading cake clicks:', error);
-        setIsLoading(false);
+        
+        // Final fallback to file-based database
+        try {
+          const response = await fetch('/api/db');
+          const data = await response.json();
+          setScore(data.cakeClicks);
+        } catch (err) {
+          console.error('Error with fallback data source:', err);
+        } finally {
+          setIsLoading(false);
+        }
       }
     }
     
     loadData();
+    
+    // Set up periodic refresh from Google Sheets
+    const intervalId = setInterval(async () => {
+      try {
+        const response = await fetch('/api/sheet-read');
+        const data = await response.json();
+        if (data && typeof data.cakeClicks === 'number') {
+          setScore(data.cakeClicks);
+        }
+      } catch (error) {
+        console.error('Error refreshing cake clicks:', error);
+      }
+    }, 30000); // Refresh every 30 seconds
+    
+    return () => clearInterval(intervalId);
   }, []);
   
-  // Update click count in the database
+  // Update click count in both databases
   const handleClick = async () => {
     const newScore = score + 1;
     setScore(newScore);
     
     try {
+      // Update file-based database
       await fetch('/api/db', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ cakeClicks: newScore }),
+      });
+      
+      // Also send update to sheet-write API
+      await fetch('/api/sheet-write', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

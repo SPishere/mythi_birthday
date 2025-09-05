@@ -1,36 +1,42 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 
 export default function PositiveMessages() {
   const [currentMessage, setCurrentMessage] = useState("");
   const [showMessage, setShowMessage] = useState(false);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
   
   // Array of 300+ positive messages for Mythi
   const messages = [
-    // Affirmations
-    "You're the boss bitch everyone aspires to be! 💪",
-    "Girl boss energy is radiating from you today! ✨",
-    "I love how you light up every room you walk into.",
-    "Your smile could power a small city, I swear!",
-    "The world is better because you're in it, Mythi!",
-    "You're not just a star, you're the whole damn galaxy! 🌟",
-    "If confidence was a person, it'd be you!",
-    "I admire your strength more than you know.",
-    "You inspire me every single day.",
-    "Your kindness changes lives - including mine.",
-    
-    // Motivational
-    "Today is your day to shine - grab it with both hands!",
-    "You've got this! Whatever 'this' is, it's already yours.",
-    "The universe conspires in your favor - always has, always will.",
-    "Your potential is limitless - never forget that.",
-    "Every challenge you face is just making you stronger.",
-    "Setbacks? Just setups for your greatest comeback!",
-    "Dream bigger - you have what it takes to achieve it all.",
-    "Your future self is thanking you for not giving up.",
-    "You're exactly where you need to be right now.",
-    "The best is yet to come - and it's coming fast!",
+    // Pun-tastic
+    "I donut know what I'd do without you in my life! 🍩",
+    "Orange you glad we're friends? I know I am! 🍊",
+    "You're tea-riffic and that's the honest brew-th! ☕",
+    "We make a great pear! 🍐",
+    "I'm so grapeful to have you in my life! 🍇",
+    "You're simply spec-taco-lar! 🌮",
+    "I think you're absolutely soup-er! 🍜",
+    "You're such a cutie-pie, I can't espresso how much I love you! 🥧☕",
+    "Life without you would be un-bear-able! 🐻",
+    "You octopi a special place in my heart! 🐙",
+    "You're eggs-actly the friend I needed! 🍳",
+    "I'm not lion, you're amazing! 🦁",
+    "You've stolen a pizza my heart! 🍕",
+    "I've bean thinking about how awesome you are! ☕",
+    "You're one in a melon! 🍉",
+
+    // Sarcastic Birthday
+    "Happy Birthday! Don't worry, being one year older is still younger than you'll be next year! 🎂",
+    "Congrats on being too old for the kids menu but still asking if they'll let you order from it! 🍔",
+    "Your age is just a number... a number that keeps getting bigger every year! 🔢",
+    "They say age is just a state of mind. In that case, your mind needs to update its driver's license! 🪪",
+    "Happy Birthday! May your day be as fabulous as you pretend your life is on social media! 📱",
+    "I'd say 'don't ever change,' but it's probably too late for that anyway. Happy Birthday! 🎉",
+    "Remember when we were young and had energy? Yeah, me neither. Happy Birthday! 💤",
+    "Happy Birthday! Don't think of it as getting older, think of it as becoming vintage! 🍷",
+    "When someone asks your age now, just cough loudly and change the subject! 😷",
+    "You know you're getting older when your back goes out more than you do! 👵",
     
     // Love Notes
     "The way your eyes light up when you're excited makes my heart skip.",
@@ -247,34 +253,125 @@ export default function PositiveMessages() {
     "If people were planets, you'd be the brightest in the solar system.",
     "Your spirit vibrates at a higher frequency.",
     "You're made of the same stuff as stars - and it shows.",
+    
+    // Sarcastic
+    "Happy Birthday! Don't worry, being one year older is still younger than you'll be next year! 🎂",
+    "Congrats on being too old for the kids menu but still asking if they'll let you order from it! 🍔",
+    "Your age is just a number... a number that keeps getting bigger every year! 🔢",
+    "They say age is just a state of mind. In that case, your mind needs to update its driver's license! 🪪",
+    "Happy Birthday! May your day be as fabulous as you pretend your life is on social media! 📱",
+    "I'd say 'don't ever change,' but it's probably too late for that anyway. Happy Birthday! 🎉",
+    "Remember when we were young and had energy? Yeah, me neither. Happy Birthday! 💤",
+    "Happy Birthday! Don't think of it as getting older, think of it as becoming vintage! 🍷",
+    "When someone asks your age now, just cough loudly and change the subject! 😷",
+    "You know you're getting older when your back goes out more than you do! 👵",
+    "Aging gracefully is the polite way of saying you're slowly looking more like your parents! 👨‍👩‍👧",
+    "They say the best things in life are free, but I still bought you a present—I'm not a monster! 🎁",
+    "You're not special because it's your birthday. You're special because you're weird all year round! 🤪",
+    
+    // More Puns
+    "Thanks for always being my weird-owl! 🦉",
+    "You're tea-rific in every way! ☕",
+    "I'm nuts about you! 🥜",
+    "Alpaca my bags and go wherever you go! 🦙",
+    "I think you're purr-fect! 🐱",
+    "You make me egg-stra happy! 🍳",
+    "Sending you mush-room for love in your heart! 🍄",
+    "Whale hello there, gorgeous! 🐋",
+    "You're one tough cookie, and that's how I like it! 🍪",
+    "Your friendship is tea-riffic! ☕",
+    "You're the zest! 🍋",
+    "Water you doing being so awesome all the time? 💧",
+    "I think you're turtle-y amazing! 🐢",
+    "I'm so berry happy to know you! 🍓",
+    "I'm not kitten around, you're paw-some! 🐾",
+    
+    // Extra Poems
+    "A birthday comes once a year, bringing cake and so much cheer, but Mythi's special day outshines them all, making other birthdays look quite small! 🎂",
+    "There once was a birthday so grand, the celebration got totally out of hand, with Mythi at the center, no one could enter, without bringing gifts that were totally bland! 🎁",
+    "Mythi, Mythi, quite contrary, how does your birthday grow? With candles and cake and friends so true, and presents all in a row! 🎀",
+    "Birthdays come and birthdays go, some are fast and some are slow, but yours, dear Mythi, takes the cake, the best birthday for goodness sake! 🍰",
+    "On this day of your birth, we celebrate with mirth, though you're older it's true, we still love hanging with you, you're the coolest person on earth! 🌎",
+    "Roses are red, violets are blue, your birthday's today, and I forgot to get you a present, so this terrible poem will have to do! 💐",
+    "There once was a friend so dear, whose birthday came once a year, we sang and we danced, completely entranced, and drank way too much beer! 🍺",
+    "Happy Birthday to you, you live in a zoo, you look like a monkey, and smell like one too! (Sorry, couldn't resist the classic!) 🐒",
+    "Twinkle twinkle birthday star, how I wonder how old you are, up above your cake so high, like a candle in the sky, twinkle twinkle birthday star, I know exactly how old you are! 🌟",
+    
+    // Witty One-Liners
+    "I'd tell you a joke about pizza, but it's too cheesy. Just like you! 🍕",
+    "I'm not saying you're old, but if you were milk, I'd sniff you first. 🥛",
+    "You're like a fine wine - you just get more expensive with age! �",
+    "If life gives you lemons, add vodka and make a cocktail! 🍋🍸",
+    "My favorite exercise is a cross between a lunge and a crunch... I call it lunch. 🍔",
+    "Common sense is like deodorant. The people who need it most never use it! 🧴",
+    "Never trust atoms, they make up everything! ⚛️",
+    "Behind every great person is a substantial amount of coffee. ☕",
+    "I don't have a short attention span, I just... hey look, a squirrel! �️",
+    "I'm on a seafood diet. I see food, and I eat it! 🦐",
+    "Your secrets are safe with me... I wasn't even listening! 🤫",
+    "I'm not arguing, I'm just explaining why I'm right. 💬",
+    "My goal this weekend is to move... from the bed to the couch. 🛋️",
+    "Life is short. Smile while you still have teeth! 😁",
+    "Wine improves with age. I improve with wine! 🍷",
+    
+    // Funny
+    "You're not just a snack, you're the whole damn meal! 🍕",
+    "If you were a vegetable, you'd be a cute-cumber!",
+    "Are you Google? Because you have everything I'm searching for!",
+    "Is your name WiFi? Because I'm feeling a strong connection!",
+    "If you were a fruit, you'd be a FINE-apple! 🍍",
   ];
 
-  // Get a random message
   const getRandomMessage = () => {
-    const randomIndex = Math.floor(Math.random() * messages.length);
-    setCurrentMessage(messages[randomIndex]);
-    setShowMessage(true);
-    setTimeout(() => {
+    // Clear any existing timer
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+    }
+    
+    // If a message is already showing, hide it and show a new one after a brief delay
+    if (showMessage) {
       setShowMessage(false);
-    }, 5000); // Hide after 5 seconds
+      setTimeout(() => {
+        const randomIndex = Math.floor(Math.random() * messages.length);
+        setCurrentMessage(messages[randomIndex]);
+        setShowMessage(true);
+        
+        // Set a new timer
+        timerRef.current = setTimeout(() => {
+          setShowMessage(false);
+          timerRef.current = null;
+        }, 20000); // Hide after 20 seconds (increased from 15 seconds)
+      }, 300); // Small delay for transition effect
+    } else {
+      // If no message is showing, show one immediately
+      const randomIndex = Math.floor(Math.random() * messages.length);
+      setCurrentMessage(messages[randomIndex]);
+      setShowMessage(true);
+      
+      // Set a new timer
+      timerRef.current = setTimeout(() => {
+        setShowMessage(false);
+        timerRef.current = null;
+      }, 20000); // Hide after 20 seconds (increased from 15 seconds)
+    }
   };
 
   return (
     <div className="w-full flex flex-col items-center mt-4 mb-8">
       <button
         onClick={getRandomMessage}
-        className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-pink-500 hover:to-purple-500 text-white font-bold py-3 px-6 rounded-full shadow-lg transform hover:scale-105 transition duration-300 text-lg"
+        className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-pink-500 hover:to-purple-500 text-white font-bold py-3 px-6 rounded-full shadow-lg transform hover:scale-110 transition duration-300 text-lg animate-pulse"
       >
-        Click for a Special Message! 💖
+        {showMessage ? "Reveal Another! 💫" : "Reveal! 💖"}
       </button>
       
-      {showMessage && (
-        <div className="mt-6 max-w-md mx-auto">
-          <div className="animate-bounce-slow bg-white rounded-lg p-6 shadow-xl border-2 border-pink-300">
-            <p className="text-lg text-center font-medium text-pink-600">{currentMessage}</p>
+      <div className="mt-6 max-w-md mx-auto h-auto min-h-[150px] flex items-center justify-center">
+        {showMessage && (
+          <div className="animate-fade-in bg-white rounded-lg p-6 shadow-xl border-2 border-pink-300 transition-all duration-1000 transform hover:scale-105 w-full">
+            <p className="text-lg text-center font-medium text-pink-600 font-sans">{currentMessage}</p>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

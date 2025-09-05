@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import PositiveMessages from "./components/PositiveMessages";
+import BalloonPop from "./components/BalloonPop";
+import FortuneTeller from "./components/FortuneTeller";
 
 export default function Home() {
   // Confetti animation using canvas
@@ -44,229 +46,38 @@ export default function Home() {
       <canvas ref={canvasRef} className="fixed top-0 left-0 w-full h-full pointer-events-none z-0" />
       <div className="z-10 w-full max-w-6xl py-12 px-4">
         <div className="text-center mb-8">
-          <h1 className="text-6xl font-extrabold text-pink-600 drop-shadow-lg animate-bounce mb-4">
+          <h1 className="text-6xl font-extrabold text-pink-600 drop-shadow-lg animate-bounce mb-4 font-display">
             🎉 Happy Birthday, Mythi! 🎂
           </h1>
-          <p className="text-2xl text-blue-700 font-bold mb-8 animate-pulse">
-            Wishing you a day that&apos;s super fun, crazy awesome, and full of surprises!
+          <p className="text-2xl text-blue-700 font-bold mb-8 animate-pulse font-sans italic">
+            You are the bitch and you&apos;ll always be THE bitch and forever my cutie patooti ILU ❤️
           </p>
         </div>
         
         {/* Main content area with side-by-side layout */}
         <div className="flex flex-col md:flex-row md:space-x-6 space-y-6 md:space-y-0">
-          {/* Left column with Message Board */}
+          {/* Left column with Positive Messages */}
           <div className="w-full md:w-1/2">
-            <div className="bg-pink-100 rounded-xl p-6 shadow-xl h-full">
-              <h2 className="text-3xl font-bold text-yellow-600 mb-4">Message Board</h2>
-              <MessageBoard />
+            <div className="bg-white/80 rounded-xl p-6 shadow-xl h-full">
+              <h2 className="text-3xl font-bold text-purple-600 mb-4 font-display">Your Statement of the Moment</h2>
+              <PositiveMessages />
             </div>
           </div>
           
-          {/* Right column with Positive Messages and Mini-Game */}
+          {/* Right column with Balloon Pop Game and Fortune Teller */}
           <div className="w-full md:w-1/2 flex flex-col space-y-6">
-            <div className="bg-white/80 rounded-xl p-6 shadow-xl">
-              <h2 className="text-3xl font-bold text-purple-600 mb-4">Your Message for the Moment</h2>
-              <PositiveMessages />
+            <div className="bg-pink-100 rounded-xl p-6 shadow-xl">
+              <h2 className="text-3xl font-bold text-yellow-600 mb-4 font-display">Balloon Pop Game</h2>
+              <BalloonPop />
             </div>
             
             <div className="bg-blue-100 rounded-xl p-6 shadow-xl">
-              <h2 className="text-3xl font-bold text-pink-600 mb-4">Mini-Game: Click the Cake!</h2>
-              <MiniGame />
+              <h2 className="text-3xl font-bold text-pink-600 mb-4 font-display">Birthday Fortune Teller</h2>
+              <FortuneTeller />
             </div>
           </div>
         </div>
       </div>
-    </div>
-  );
-}
-
-// Message Board Component
-function MessageBoard() {
-  const [messages, setMessages] = useState<string[]>([]);
-  const [input, setInput] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  
-  // Function to load messages from the database with cache-busting
-  const loadMessages = async () => {
-    try {
-      // Add timestamp to prevent caching
-      const response = await fetch(`/api/db?nocache=${Date.now()}`);
-      if (!response.ok) {
-        throw new Error('Failed to load messages');
-      }
-      const data = await response.json();
-      
-      // Ensure messages is always an array
-      setMessages(Array.isArray(data.messages) ? data.messages : []);
-      setIsLoading(false);
-      setError(null);
-    } catch (error) {
-      console.error('Error loading messages:', error);
-      setIsLoading(false);
-      setError('Failed to load messages');
-    }
-  };
-  
-  // Load messages on component mount and set up auto-refresh
-  useEffect(() => {
-    loadMessages(); // Initial load
-    
-    // Set up polling for real-time updates
-    const intervalId = setInterval(loadMessages, 2000);
-    
-    // Clean up interval on component unmount
-    return () => clearInterval(intervalId);
-  }, []);
-  
-  // Save a new message to the database
-  const handleSendMessage = async () => {
-    if (!input.trim()) return;
-    
-    const messageToSend = input.trim();
-    
-    // Optimistic UI update
-    setMessages(prev => [messageToSend, ...prev]);
-    setInput("");
-    
-    try {
-      const response = await fetch('/api/db', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ message: messageToSend }),
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to send message');
-      }
-      
-      // Force reload messages to get server state
-      await loadMessages();
-    } catch (error) {
-      console.error('Error saving message:', error);
-      // If error, reload to get correct state
-      loadMessages();
-    }
-  };
-  
-  return (
-    <div>
-      <div className="mb-4">
-        <input
-          className="border-2 border-yellow-400 rounded-lg px-4 py-2 w-full mr-2 mb-2"
-          type="text"
-          value={input}
-          placeholder="Leave a message for Mythi!"
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
-        />
-        <button
-          className="bg-pink-400 text-white font-bold px-4 py-2 rounded-lg w-full"
-          onClick={handleSendMessage}
-        >Send</button>
-      </div>
-      {isLoading ? (
-        <p className="text-gray-500">Loading messages...</p>
-      ) : error ? (
-        <p className="text-red-500">{error}. Try refreshing the page.</p>
-      ) : (
-        <ul className="space-y-2 max-h-[200px] overflow-y-auto">
-          {messages.length > 0 ? (
-            messages.map((msg, idx) => (
-              <li key={idx} className="bg-yellow-200 rounded-lg px-4 py-2 text-lg font-semibold">
-                {msg}
-              </li>
-            ))
-          ) : (
-            <p className="text-gray-500 italic">No messages yet. Be the first to leave a message!</p>
-          )}
-        </ul>
-      )}
-    </div>
-  );
-}
-
-// Mini-Game Component
-function MiniGame() {
-  const [score, setScore] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  
-  // Function to load the current cake click count with cache-busting
-  const loadClickCount = async () => {
-    try {
-      // Add timestamp to prevent caching
-      const response = await fetch(`/api/db?nocache=${Date.now()}`);
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-      const data = await response.json();
-      setScore(typeof data.cakeClicks === 'number' ? data.cakeClicks : 0);
-      setIsLoading(false);
-      setError(null);
-    } catch (error) {
-      console.error('Error loading cake clicks:', error);
-      setIsLoading(false);
-      setError('Failed to load cake clicks');
-    }
-  };
-  
-  // Load click count on component mount and set up auto-refresh
-  useEffect(() => {
-    loadClickCount(); // Initial load
-    
-    // Set up polling for real-time updates
-    const intervalId = setInterval(loadClickCount, 2000);
-    
-    // Clean up interval on component unmount
-    return () => clearInterval(intervalId);
-  }, []);
-  
-  // Handle cake click - using incrementCakeClicks instead of setting absolute value
-  const handleClick = async () => {
-    // Optimistic UI update
-    setScore(prevScore => prevScore + 1);
-    
-    try {
-      const response = await fetch('/api/db', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ incrementCakeClicks: true }),
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to increment cake clicks');
-      }
-      
-      // Force reload the real count from the server
-      await loadClickCount();
-    } catch (error) {
-      console.error('Error incrementing cake clicks:', error);
-      // If error, reload to get correct state
-      loadClickCount();
-    }
-  };
-  
-  return (
-    <div className="flex flex-col items-center">
-      <button
-        className="bg-pink-400 rounded-full p-4 shadow-lg hover:scale-110 transition-transform text-4xl"
-        onClick={handleClick}
-        disabled={isLoading}
-      >
-        🎂
-      </button>
-      {error ? (
-        <p className="mt-4 text-red-500 font-bold">{error}</p>
-      ) : (
-        <p className="mt-4 text-xl font-bold text-purple-700">
-          {isLoading ? "Loading..." : `Cake Clicks: ${score}`}
-        </p>
-      )}
     </div>
   );
 }
