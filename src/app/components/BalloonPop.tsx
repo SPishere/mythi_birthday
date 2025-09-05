@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 
 export default function BalloonPop() {
   const [score, setScore] = useState(0);
@@ -23,7 +23,7 @@ export default function BalloonPop() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
   
-  const colors = ['#FF69B4', '#FFD700', '#00FFFF', '#FF6347', '#32CD32', '#8A2BE2', '#FF1493', '#FFAC1C'];
+  const colors = useMemo(() => ['#FF69B4', '#FFD700', '#00FFFF', '#FF6347', '#32CD32', '#8A2BE2', '#FF1493', '#FFAC1C'], []);
   const normalEmojis = ['🎈', '🎁', '🎊', '🎉', '🎂', '🍰', '🥳', '🎀'];
   const crazyEmojis = ['👽', '👻', '🤡', '💥', '🚀', '⚡', '🌪️', '🔥', '🤪', '🦄'];
   
@@ -331,7 +331,7 @@ export default function BalloonPop() {
         setBalloons([newBalloon]);
       }
     }
-  }, [isPlaying, balloons.length, timeLeft]);
+  }, [isPlaying, balloons.length, timeLeft, colors]);
   
   // Cleanup on unmount or when game ends
   useEffect(() => {

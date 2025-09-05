@@ -82,9 +82,9 @@ export default function GoogleSheetViewer() {
           <p className="text-sm mt-2">
             Make sure your Google Sheet is properly set up with:
             <ul className="list-disc ml-5 mt-1">
-              <li>A sheet named "cake" with click count in cell A2</li>
-              <li>A sheet named "messages" with messages in column A (starting at A2)</li>
-              <li>Public access set to "Anyone with the link can view"</li>
+              <li>A sheet named &quot;cake&quot; with click count in cell A2</li>
+              <li>A sheet named &quot;messages&quot; with messages in column A (starting at A2)</li>
+              <li>Public access set to &quot;Anyone with the link can view&quot;</li>
             </ul>
           </p>
         </div>

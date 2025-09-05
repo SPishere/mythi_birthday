@@ -1,12 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-// The Sheet ID from your Google Sheet URL
-const SHEET_ID = '1kXmN3W4awa4iyv_20O_MCwUPzUU19aTh1Gg1S7GnEJw';
-
-// Define sheet names
-const CAKE_SHEET = 'cake';
-const MESSAGES_SHEET = 'messages';
-
 /*
  * NOTE: Writing to Google Sheets requires authentication with OAuth or API key.
  * This would need to be implemented with the Google Sheets API directly.
@@ -19,55 +12,21 @@ const MESSAGES_SHEET = 'messages';
  * 4. Use the Google Sheets Node.js client library or fetch API with auth
  */
 
-// POST handler to update data
+// POST handler - this is a placeholder for sheet writing functionality
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     
-    // Determine what to update based on request body
-    if (body.cakeClicks !== undefined) {
-      console.log(`Would update cake clicks to: ${body.cakeClicks}`);
-      // Here you would update the Google Sheet
-      // Example pseudocode:
-      // await googleSheetsClient.spreadsheets.values.update({
-      //   spreadsheetId: SHEET_ID,
-      //   range: `${CAKE_SHEET}!A2`,
-      //   valueInputOption: 'USER_ENTERED',
-      //   resource: { values: [[body.cakeClicks]] }
-      // });
-    }
+    // Log the received data
+    console.log('Update request received:', body);
     
-    if (body.message) {
-      console.log(`Would add message: ${body.message}`);
-      // Here you would append to the Google Sheet
-      // Example pseudocode:
-      // await googleSheetsClient.spreadsheets.values.append({
-      //   spreadsheetId: SHEET_ID,
-      //   range: `${MESSAGES_SHEET}!A2`,
-      //   valueInputOption: 'USER_ENTERED',
-      //   insertDataOption: 'INSERT_ROWS',
-      //   resource: { values: [[body.message]] }
-      // });
-    }
+    // In a real implementation, we would update the Google Sheet here
     
-    // For now, just pass through to the file-based database
-    const dbApiUrl = new URL('/api/db', request.url);
-    const response = await fetch(dbApiUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(body),
-    });
-    
-    const responseData = await response.json();
-    
-    return new NextResponse(JSON.stringify({
-      ...responseData,
-      googleSheet: {
-        message: "Google Sheet update would happen here (needs OAuth/API key setup)",
-        status: "simulated"
-      }
+    // Return success response
+    return new NextResponse(JSON.stringify({ 
+      success: true, 
+      message: 'Data received (Note: Not actually writing to sheet in this demo)',
+      receivedData: body
     }), {
       headers: {
         'Content-Type': 'application/json',
@@ -75,8 +34,11 @@ export async function POST(request: NextRequest) {
       }
     });
   } catch (error) {
-    console.error('Error in POST handler:', error);
-    return new NextResponse(JSON.stringify({ error: 'Failed to update data' }), {
+    console.error('Error in sheet write handler:', error);
+    return new NextResponse(JSON.stringify({ 
+      error: 'Failed to process data',
+      message: 'An error occurred while processing your request'
+    }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }
     });

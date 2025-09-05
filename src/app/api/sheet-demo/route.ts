@@ -3,40 +3,40 @@ import { NextRequest, NextResponse } from 'next/server';
 // Define the Sheet ID from your Google Sheet URL
 const SHEET_ID = '1kXmN3W4awa4iyv_20O_MCwUPzUU19aTh1Gg1S7GnEJw';
 
-// Define the interface for our data structure
-interface AppData {
-  cakeClicks: number;
-  messages: string[];
-}
+// Define sheet names
+const CAKE_SHEET = 'cake';
+const MESSAGES_SHEET = 'messages';
 
-// Function to fetch data from the Google Sheet
-async function fetchSheetData(): Promise<AppData> {
+// Function to fetch the Google Sheet data
+async function fetchSheetData(): Promise<{ cakeClicks: number, messages: string[] }> {
   try {
-    // Using the publicly accessible CSV export feature of Google Sheets
-    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv`;
+    // Fetch the cake sheet data
+    const cakeResponse = await fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?sheet=${CAKE_SHEET}&tqx=out:csv`);
+    const cakeCSV = await cakeResponse.text();
     
-    const response = await fetch(url);
-    if (!response.ok) {
-      console.error('Failed to fetch sheet data, status:', response.status);
-      throw new Error('Failed to fetch data from Google Sheet');
+    // Parse the CSV data
+    const cakeRows = cakeCSV.split('\n');
+    let cakeClicks = 0;
+    
+    // Assume the click count is in cell A2
+    if (cakeRows.length > 1) {
+      // Remove quotes if present
+      const clickCell = cakeRows[1].replace(/"/g, '');
+      cakeClicks = parseInt(clickCell, 10) || 0;
     }
     
-    const csvText = await response.text();
-    const rows = csvText.split('\n').map(row => row.split(','));
+    // Fetch the messages sheet data
+    const messagesResponse = await fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?sheet=${MESSAGES_SHEET}&tqx=out:csv`);
+    const messagesCSV = await messagesResponse.text();
     
-    // Process the data from the sheet
-    let cakeClicks = 0;
+    // Parse the CSV data
+    const rows = messagesCSV.split('\n');
     const messages: string[] = [];
     
-    // Find the cake clicks (we expect it in cell B2)
-    if (rows.length >= 2 && rows[1].length >= 2) {
-      const clicksValue = rows[1][1]; // B2 (row 1, column 1 in 0-indexed array)
-      cakeClicks = parseInt(clicksValue, 10) || 0;
-    }
-    
-    // Collect messages (we expect them in column A starting from row 3)
-    for (let i = 2; i < rows.length; i++) {
-      if (rows[i] && rows[i][0] && rows[i][0].trim()) {
+    // Skip header row and process each message
+    for (let i = 1; i < rows.length; i++) {
+      if (rows[i] && rows[i].trim()) {
+        // Remove quotes if present
         messages.push(rows[i][0].trim());
       }
     }
@@ -45,51 +45,6 @@ async function fetchSheetData(): Promise<AppData> {
   } catch (error) {
     console.error('Error fetching sheet data:', error);
     return { cakeClicks: 0, messages: [] };
-  }
-}
-
-// Function to update the Google Sheet data
-// Note: For writing, we'll use a simple form submit approach that works with public sheets
-async function updateSheetData(update: { message?: string, incrementCakeClicks?: boolean }): Promise<void> {
-  try {
-    // First get the current data to know the current state
-    const currentData = await fetchSheetData();
-    
-    // Create a form data object to submit to the Google Form endpoint
-    const formData = new FormData();
-    
-    // If we need to increment cake clicks
-    if (update.incrementCakeClicks) {
-      const newClickCount = currentData.cakeClicks + 1;
-      
-      // We'll use the sheet's form submission URL
-      const formUrl = `https://docs.google.com/forms/d/e/YOUR_FORM_ID/formResponse`;
-      
-      // You'd need to create a Google Form connected to your sheet
-      // and add these form field names
-      formData.append('entry.123456789', newClickCount.toString());
-      
-      await fetch(formUrl, {
-        method: 'POST',
-        body: formData,
-        mode: 'no-cors', // Important for CORS issues
-      });
-    }
-    
-    // If we need to add a new message
-    if (update.message) {
-      const formUrl = `https://docs.google.com/forms/d/e/YOUR_FORM_ID/formResponse`;
-      formData.append('entry.987654321', update.message);
-      
-      await fetch(formUrl, {
-        method: 'POST',
-        body: formData,
-        mode: 'no-cors',
-      });
-    }
-  } catch (error) {
-    console.error('Error updating sheet data:', error);
-    throw error;
   }
 }
 
@@ -150,8 +105,3 @@ export async function POST(request: NextRequest) {
     });
   }
 }
-
-// Note: For a complete implementation, you'll need to:
-// 1. Create a Google Form linked to your sheet
-// 2. Get the form ID and field IDs
-// 3. Update the updateSheetData function with those IDs
