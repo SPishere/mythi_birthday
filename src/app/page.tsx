@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import PositiveMessages from "./components/PositiveMessages";
+import PhotoSlideshow from "./components/PhotoSlideshow";
 
 export default function Home() {
   // Confetti animation using canvas
@@ -68,27 +69,25 @@ export default function Home() {
         <div className="bg-white/80 rounded-xl p-6 shadow-xl mb-8">
           <h2 className="text-3xl font-bold text-purple-600 mb-4">Fun Memories Gallery</h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-            {/* Placeholder images, replace with real ones! */}
+            {/* Real photos of Mythi */}
             <div className="relative w-[200px] h-[200px] rounded-lg overflow-hidden shadow-md">
-              <Image src="https://placekitten.com/200/200" alt="Memory 1" fill className="object-cover" />
+              <Image src="/images/62ad1004-69b3-4682-84dd-87d786537c2c.jpg" alt="Mythi Memory 1" fill className="object-cover" />
             </div>
             <div className="relative w-[200px] h-[200px] rounded-lg overflow-hidden shadow-md">
-              <Image src="https://placebear.com/200/200" alt="Memory 2" fill className="object-cover" />
+              <Image src="/images/BeautyPlus_20210313222735766_save.jpg" alt="Mythi Memory 2" fill className="object-cover" />
             </div>
             <div className="relative w-[200px] h-[200px] rounded-lg overflow-hidden shadow-md">
-              <Image src="https://placebeard.it/200x200" alt="Memory 3" fill className="object-cover" />
+              <Image src="/images/BeautyPlus_20210904103958351_save.jpg" alt="Mythi Memory 3" fill className="object-cover" />
             </div>
             <div className="relative w-[200px] h-[200px] rounded-lg overflow-hidden shadow-md">
-              <Image src="https://placekitten.com/201/200" alt="Memory 4" fill className="object-cover" />
+              <Image src="/images/IMG_20200816_190624.jpg" alt="Mythi Memory 4" fill className="object-cover" />
             </div>
             <div className="relative w-[200px] h-[200px] rounded-lg overflow-hidden shadow-md">
-              <Image src="https://placebear.com/201/200" alt="Memory 5" fill className="object-cover" />
+              <Image src="/images/IMG_5269.jpg" alt="Mythi Memory 5" fill className="object-cover" />
             </div>
             <div className="relative w-[200px] h-[200px] rounded-lg overflow-hidden shadow-md">
-              <Image src="https://placebeard.it/201x200" alt="Memory 6" fill className="object-cover" />
+              <Image src="/images/WhatsApp Image 2025-07-26 at 13.33.38.jpeg" alt="Mythi Memory 6" fill className="object-cover" />
             </div>
-          </div>
-        </div>
         {/* Message Board Section */}
         <div className="bg-pink-100 rounded-xl p-6 shadow-xl mb-8">
           <h2 className="text-3xl font-bold text-yellow-600 mb-4">Message Board</h2>
@@ -99,6 +98,9 @@ export default function Home() {
           <h2 className="text-3xl font-bold text-pink-600 mb-4">Mini-Game: Click the Cake!</h2>
           <MiniGame />
         </div>
+        
+        {/* Photo Slideshow */}
+        <PhotoSlideshow />
       </div>
     </div>
   );
