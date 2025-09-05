@@ -54,19 +54,19 @@ export default function Home() {
         
         {/* Main content area with side-by-side layout */}
         <div className="flex flex-col md:flex-row md:space-x-6 space-y-6 md:space-y-0">
-          {/* Left column with Positive Messages */}
+          {/* Left column with Message Board */}
           <div className="w-full md:w-1/2">
-            <div className="bg-white/80 rounded-xl p-6 shadow-xl h-full">
-              <h2 className="text-3xl font-bold text-purple-600 mb-4">Birthday Wishes</h2>
-              <PositiveMessages />
+            <div className="bg-pink-100 rounded-xl p-6 shadow-xl h-full">
+              <h2 className="text-3xl font-bold text-yellow-600 mb-4">Message Board</h2>
+              <MessageBoard />
             </div>
           </div>
           
-          {/* Right column with Message Board and Mini-Game */}
+          {/* Right column with Positive Messages and Mini-Game */}
           <div className="w-full md:w-1/2 flex flex-col space-y-6">
-            <div className="bg-pink-100 rounded-xl p-6 shadow-xl">
-              <h2 className="text-3xl font-bold text-yellow-600 mb-4">Message Board</h2>
-              <MessageBoard />
+            <div className="bg-white/80 rounded-xl p-6 shadow-xl">
+              <h2 className="text-3xl font-bold text-purple-600 mb-4">Your Message for the Moment</h2>
+              <PositiveMessages />
             </div>
             
             <div className="bg-blue-100 rounded-xl p-6 shadow-xl">
@@ -143,12 +143,16 @@ function MessageBoard() {
       {isLoading ? (
         <p className="text-gray-500">Loading messages...</p>
       ) : (
-        <ul className="space-y-2 max-h-[200px] overflow-y-auto">
-          {messages.map((msg, idx) => (
-            <li key={idx} className="bg-yellow-200 rounded-lg px-4 py-2 text-lg font-semibold">
-              {msg}
-            </li>
-          ))}
+        <ul className="space-y-2 max-h-[350px] overflow-y-auto">
+          {messages.length > 0 ? (
+            messages.map((msg, idx) => (
+              <li key={idx} className="bg-yellow-200 rounded-lg px-4 py-2 text-lg font-semibold">
+                {msg}
+              </li>
+            ))
+          ) : (
+            <p className="text-gray-500 italic">No messages yet. Be the first to leave a message!</p>
+          )}
         </ul>
       )}
     </div>
@@ -179,6 +183,7 @@ function MiniGame() {
   
   // Update click count in the database
   const handleClick = async () => {
+    // Update local state immediately for better UX
     const newScore = score + 1;
     setScore(newScore);
     
@@ -188,7 +193,7 @@ function MiniGame() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ cakeClicks: newScore }),
+        body: JSON.stringify({ incrementCakeClicks: true }),
       });
     } catch (error) {
       console.error('Error saving cake clicks:', error);

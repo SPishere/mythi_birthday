@@ -38,9 +38,9 @@ export async function POST(request: NextRequest) {
   const data = readDB();
   const body = await request.json();
   
-  // Update cake clicks if provided
-  if (body.cakeClicks !== undefined) {
-    data.cakeClicks = body.cakeClicks;
+  // Update cake clicks if provided - always increment by 1
+  if (body.incrementCakeClicks) {
+    data.cakeClicks += 1;
   }
   
   // Add new message if provided
