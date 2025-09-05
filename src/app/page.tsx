@@ -1,9 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Image from "next/image";
 import PositiveMessages from "./components/PositiveMessages";
-import PhotoSlideshow from "./components/PhotoSlideshow";
 
 export default function Home() {
   // Confetti animation using canvas
@@ -44,63 +42,39 @@ export default function Home() {
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-pink-200 via-yellow-100 to-blue-200 flex flex-col items-center justify-center overflow-hidden">
       <canvas ref={canvasRef} className="fixed top-0 left-0 w-full h-full pointer-events-none z-0" />
-      <div className="z-10 text-center py-12">
-        <h1 className="text-6xl font-extrabold text-pink-600 drop-shadow-lg animate-bounce mb-4">
-          🎉 Happy Birthday, Mythi! 🎂
-        </h1>
-        <p className="text-2xl text-blue-700 font-bold mb-8 animate-pulse">
-          Wishing you a day that&apos;s super fun, crazy awesome, and full of surprises!
-        </p>
-        
-        {/* Positive Messages Feature */}
-        <PositiveMessages />
-        
-        {/* Playful surprise button (sound effect) */}
-        <button
-          className="bg-yellow-400 hover:bg-pink-400 text-white font-bold py-2 px-6 rounded-full shadow-lg transition-all duration-300 text-xl mb-8"
-          onClick={() => {
-            const audio = new Audio("https://cdn.pixabay.com/audio/2022/10/16/audio_12b6b9b7b7.mp3");
-            audio.play();
-          }}
-        >
-          Click for a Surprise Sound! 🔊
-        </button>
-        {/* Gallery Section */}
-        <div className="bg-white/80 rounded-xl p-6 shadow-xl mb-8">
-          <h2 className="text-3xl font-bold text-purple-600 mb-4">Fun Memories Gallery</h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-            {/* Real photos of Mythi */}
-            <div className="relative w-[200px] h-[200px] rounded-lg overflow-hidden shadow-md">
-              <Image src="/images/62ad1004-69b3-4682-84dd-87d786537c2c.jpg" alt="Mythi Memory 1" fill className="object-cover" />
-            </div>
-            <div className="relative w-[200px] h-[200px] rounded-lg overflow-hidden shadow-md">
-              <Image src="/images/BeautyPlus_20210313222735766_save.jpg" alt="Mythi Memory 2" fill className="object-cover" />
-            </div>
-            <div className="relative w-[200px] h-[200px] rounded-lg overflow-hidden shadow-md">
-              <Image src="/images/BeautyPlus_20210904103958351_save.jpg" alt="Mythi Memory 3" fill className="object-cover" />
-            </div>
-            <div className="relative w-[200px] h-[200px] rounded-lg overflow-hidden shadow-md">
-              <Image src="/images/IMG_20200816_190624.jpg" alt="Mythi Memory 4" fill className="object-cover" />
-            </div>
-            <div className="relative w-[200px] h-[200px] rounded-lg overflow-hidden shadow-md">
-              <Image src="/images/IMG_5269.jpg" alt="Mythi Memory 5" fill className="object-cover" />
-            </div>
-            <div className="relative w-[200px] h-[200px] rounded-lg overflow-hidden shadow-md">
-              <Image src="/images/WhatsApp Image 2025-07-26 at 13.33.38.jpeg" alt="Mythi Memory 6" fill className="object-cover" />
-            </div>
-        {/* Message Board Section */}
-        <div className="bg-pink-100 rounded-xl p-6 shadow-xl mb-8">
-          <h2 className="text-3xl font-bold text-yellow-600 mb-4">Message Board</h2>
-          <MessageBoard />
-        </div>
-        {/* Mini-game placeholder */}
-        <div className="bg-blue-100 rounded-xl p-6 shadow-xl">
-          <h2 className="text-3xl font-bold text-pink-600 mb-4">Mini-Game: Click the Cake!</h2>
-          <MiniGame />
+      <div className="z-10 w-full max-w-6xl py-12 px-4">
+        <div className="text-center mb-8">
+          <h1 className="text-6xl font-extrabold text-pink-600 drop-shadow-lg animate-bounce mb-4">
+            🎉 Happy Birthday, Mythi! 🎂
+          </h1>
+          <p className="text-2xl text-blue-700 font-bold mb-8 animate-pulse">
+            Wishing you a day that&apos;s super fun, crazy awesome, and full of surprises!
+          </p>
         </div>
         
-        {/* Photo Slideshow */}
-        <PhotoSlideshow />
+        {/* Main content area with side-by-side layout */}
+        <div className="flex flex-col md:flex-row md:space-x-6 space-y-6 md:space-y-0">
+          {/* Left column with Positive Messages */}
+          <div className="w-full md:w-1/2">
+            <div className="bg-white/80 rounded-xl p-6 shadow-xl h-full">
+              <h2 className="text-3xl font-bold text-purple-600 mb-4">Birthday Wishes</h2>
+              <PositiveMessages />
+            </div>
+          </div>
+          
+          {/* Right column with Message Board and Mini-Game */}
+          <div className="w-full md:w-1/2 flex flex-col space-y-6">
+            <div className="bg-pink-100 rounded-xl p-6 shadow-xl">
+              <h2 className="text-3xl font-bold text-yellow-600 mb-4">Message Board</h2>
+              <MessageBoard />
+            </div>
+            
+            <div className="bg-blue-100 rounded-xl p-6 shadow-xl">
+              <h2 className="text-3xl font-bold text-pink-600 mb-4">Mini-Game: Click the Cake!</h2>
+              <MiniGame />
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -110,33 +84,73 @@ export default function Home() {
 function MessageBoard() {
   const [messages, setMessages] = useState<string[]>([]);
   const [input, setInput] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  
+  // Load initial messages from the database
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const response = await fetch('/api/db');
+        const data = await response.json();
+        setMessages(data.messages);
+        setIsLoading(false);
+      } catch (error) {
+        console.error('Error loading messages:', error);
+        setIsLoading(false);
+      }
+    }
+    
+    loadData();
+  }, []);
+  
+  // Save a new message to the database
+  const handleSendMessage = async () => {
+    if (!input.trim()) return;
+    
+    // Update local state immediately for better UX
+    const newMessages = [input, ...messages];
+    setMessages(newMessages);
+    setInput("");
+    
+    try {
+      await fetch('/api/db', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ message: input }),
+      });
+    } catch (error) {
+      console.error('Error saving message:', error);
+    }
+  };
+  
   return (
     <div>
       <div className="mb-4">
         <input
-          className="border-2 border-yellow-400 rounded-lg px-4 py-2 w-64 mr-2"
+          className="border-2 border-yellow-400 rounded-lg px-4 py-2 w-full mr-2 mb-2"
           type="text"
           value={input}
           placeholder="Leave a message for Mythi!"
           onChange={(e) => setInput(e.target.value)}
         />
         <button
-          className="bg-pink-400 text-white font-bold px-4 py-2 rounded-lg"
-          onClick={() => {
-            if (input.trim()) {
-              setMessages([input, ...messages]);
-              setInput("");
-            }
-          }}
+          className="bg-pink-400 text-white font-bold px-4 py-2 rounded-lg w-full"
+          onClick={handleSendMessage}
         >Send</button>
       </div>
-      <ul className="space-y-2">
-        {messages.map((msg, idx) => (
-          <li key={idx} className="bg-yellow-200 rounded-lg px-4 py-2 text-lg font-semibold">
-            {msg}
-          </li>
-        ))}
-      </ul>
+      {isLoading ? (
+        <p className="text-gray-500">Loading messages...</p>
+      ) : (
+        <ul className="space-y-2 max-h-[200px] overflow-y-auto">
+          {messages.map((msg, idx) => (
+            <li key={idx} className="bg-yellow-200 rounded-lg px-4 py-2 text-lg font-semibold">
+              {msg}
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
@@ -144,15 +158,55 @@ function MessageBoard() {
 // Mini-Game Component
 function MiniGame() {
   const [score, setScore] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+  
+  // Load initial click count from the database
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const response = await fetch('/api/db');
+        const data = await response.json();
+        setScore(data.cakeClicks);
+        setIsLoading(false);
+      } catch (error) {
+        console.error('Error loading cake clicks:', error);
+        setIsLoading(false);
+      }
+    }
+    
+    loadData();
+  }, []);
+  
+  // Update click count in the database
+  const handleClick = async () => {
+    const newScore = score + 1;
+    setScore(newScore);
+    
+    try {
+      await fetch('/api/db', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ cakeClicks: newScore }),
+      });
+    } catch (error) {
+      console.error('Error saving cake clicks:', error);
+    }
+  };
+  
   return (
     <div className="flex flex-col items-center">
       <button
-        className="bg-pink-400 rounded-full p-4 shadow-lg hover:scale-110 transition-transform"
-        onClick={() => setScore(score + 1)}
+        className="bg-pink-400 rounded-full p-4 shadow-lg hover:scale-110 transition-transform text-4xl"
+        onClick={handleClick}
+        disabled={isLoading}
       >
         🎂
       </button>
-      <p className="mt-4 text-xl font-bold text-purple-700">Cake Clicks: {score}</p>
+      <p className="mt-4 text-xl font-bold text-purple-700">
+        {isLoading ? "Loading..." : `Cake Clicks: ${score}`}
+      </p>
     </div>
   );
 }
