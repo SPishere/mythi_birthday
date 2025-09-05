@@ -86,30 +86,39 @@ function MessageBoard() {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   
-  // Load initial messages from the database
-  useEffect(() => {
-    async function loadData() {
-      try {
-        const response = await fetch('/api/db');
-        const data = await response.json();
-        setMessages(data.messages);
-        setIsLoading(false);
-      } catch (error) {
-        console.error('Error loading messages:', error);
-        setIsLoading(false);
-      }
+  // Function to fetch messages from the database
+  const fetchMessages = async () => {
+    try {
+      const response = await fetch('/api/db?t=' + new Date().getTime()); // Add timestamp to prevent caching
+      const data = await response.json();
+      setMessages(data.messages);
+      if (isLoading) setIsLoading(false);
+    } catch (error) {
+      console.error('Error loading messages:', error);
+      if (isLoading) setIsLoading(false);
     }
+  };
+  
+  // Load messages initially and set up polling
+  useEffect(() => {
+    // Fetch messages immediately
+    fetchMessages();
     
-    loadData();
+    // Set up polling interval (every 2 seconds)
+    const intervalId = setInterval(() => {
+      fetchMessages();
+    }, 2000);
+    
+    // Clean up interval on unmount
+    return () => clearInterval(intervalId);
   }, []);
   
   // Save a new message to the database
   const handleSendMessage = async () => {
     if (!input.trim()) return;
     
-    // Update local state immediately for better UX
-    const newMessages = [input, ...messages];
-    setMessages(newMessages);
+    // Clear input field immediately
+    const messageToSend = input.trim();
     setInput("");
     
     try {
@@ -118,8 +127,11 @@ function MessageBoard() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ message: input }),
+        body: JSON.stringify({ message: messageToSend }),
       });
+      
+      // Fetch updated messages immediately
+      fetchMessages();
     } catch (error) {
       console.error('Error saving message:', error);
     }
@@ -134,6 +146,7 @@ function MessageBoard() {
           value={input}
           placeholder="Leave a message for Mythi!"
           onChange={(e) => setInput(e.target.value)}
+          onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
         />
         <button
           className="bg-pink-400 text-white font-bold px-4 py-2 rounded-lg w-full"
@@ -164,30 +177,40 @@ function MiniGame() {
   const [score, setScore] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   
-  // Load initial click count from the database
-  useEffect(() => {
-    async function loadData() {
-      try {
-        const response = await fetch('/api/db');
-        const data = await response.json();
-        setScore(data.cakeClicks);
-        setIsLoading(false);
-      } catch (error) {
-        console.error('Error loading cake clicks:', error);
-        setIsLoading(false);
-      }
+  // Function to fetch current cake clicks from the database
+  const fetchClicks = async () => {
+    try {
+      const response = await fetch('/api/db?t=' + new Date().getTime()); // Add timestamp to prevent caching
+      const data = await response.json();
+      setScore(data.cakeClicks);
+      if (isLoading) setIsLoading(false);
+    } catch (error) {
+      console.error('Error loading cake clicks:', error);
+      if (isLoading) setIsLoading(false);
     }
+  };
+  
+  // Load clicks initially and set up polling
+  useEffect(() => {
+    // Fetch clicks immediately
+    fetchClicks();
     
-    loadData();
+    // Set up polling interval (every 2 seconds)
+    const intervalId = setInterval(() => {
+      fetchClicks();
+    }, 2000);
+    
+    // Clean up interval on unmount
+    return () => clearInterval(intervalId);
   }, []);
   
-  // Update click count in the database
+  // Handle cake click
   const handleClick = async () => {
-    // Update local state immediately for better UX
-    const newScore = score + 1;
-    setScore(newScore);
-    
     try {
+      // Optimistically update UI
+      setScore(prevScore => prevScore + 1);
+      
+      // Send update to server
       await fetch('/api/db', {
         method: 'POST',
         headers: {
@@ -195,6 +218,9 @@ function MiniGame() {
         },
         body: JSON.stringify({ incrementCakeClicks: true }),
       });
+      
+      // Fetch updated click count
+      fetchClicks();
     } catch (error) {
       console.error('Error saving cake clicks:', error);
     }

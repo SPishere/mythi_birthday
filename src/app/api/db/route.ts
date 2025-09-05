@@ -30,7 +30,14 @@ function writeDB(data: DB) {
 // GET handler to retrieve data
 export async function GET() {
   const data = readDB();
-  return NextResponse.json(data);
+  
+  // Set cache control headers to prevent caching
+  return new NextResponse(JSON.stringify(data), {
+    headers: {
+      'Content-Type': 'application/json',
+      'Cache-Control': 'no-store, max-age=0, must-revalidate'
+    }
+  });
 }
 
 // POST handler to update data
@@ -44,10 +51,24 @@ export async function POST(request: NextRequest) {
   }
   
   // Add new message if provided
-  if (body.message) {
-    data.messages = [body.message, ...data.messages].slice(0, 100); // Keep only last 100 messages
+  if (body.message && typeof body.message === 'string' && body.message.trim()) {
+    // Add the new message to the front of the array
+    data.messages.unshift(body.message.trim());
+    
+    // Keep only the last 100 messages
+    if (data.messages.length > 100) {
+      data.messages = data.messages.slice(0, 100);
+    }
   }
   
+  // Write the updated data back to the file
   writeDB(data);
-  return NextResponse.json(data);
+  
+  // Set cache control headers to prevent caching
+  return new NextResponse(JSON.stringify(data), {
+    headers: {
+      'Content-Type': 'application/json',
+      'Cache-Control': 'no-store, max-age=0, must-revalidate'
+    }
+  });
 }
