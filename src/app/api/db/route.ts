@@ -11,42 +11,114 @@ interface DB {
 // Define the path to our "database" file
 const DB_PATH = path.join(process.cwd(), 'public', 'db.json');
 
-// Helper function to read the database
-function readDB(): DB {
+// Ensure database file exists with default values
+function ensureDBExists() {
   try {
-    const data = fs.readFileSync(DB_PATH, 'utf8');
-    return JSON.parse(data);
+    if (!fs.existsSync(DB_PATH)) {
+      const defaultData: DB = { cakeClicks: 0, messages: [] };
+      fs.writeFileSync(DB_PATH, JSON.stringify(defaultData, null, 2), 'utf8');
+      console.log('Created new database file');
+    }
   } catch (error) {
-    console.error('Error reading database:', error);
-    // If the file doesn't exist or has invalid JSON, return default structure
-    return { cakeClicks: 0, messages: [] };
+    console.error('Error ensuring database exists:', error);
   }
 }
 
-// Helper function to write to the database
-function writeDB(data: DB) {
-  try {
-    fs.writeFileSync(DB_PATH, JSON.stringify(data, null, 2), 'utf8');
-    return true;
-  } catch (error) {
-    console.error('Error writing to database:', error);
-    return false;
+// Helper function to read the database with retries
+function readDB(): DB {
+  ensureDBExists();
+  
+  let attempts = 0;
+  const maxAttempts = 3;
+  
+  while (attempts < maxAttempts) {
+    try {
+      const data = fs.readFileSync(DB_PATH, 'utf8');
+      const parsedData = JSON.parse(data) as DB;
+      
+      // Ensure the data has the expected structure
+      return {
+        cakeClicks: typeof parsedData.cakeClicks === 'number' ? parsedData.cakeClicks : 0,
+        messages: Array.isArray(parsedData.messages) ? parsedData.messages : []
+      };
+    } catch (error) {
+      console.error(`Error reading database (attempt ${attempts + 1}/${maxAttempts}):`, error);
+      attempts++;
+      
+      // If we've failed all attempts, return default data
+      if (attempts >= maxAttempts) {
+        console.error('All read attempts failed, returning default data');
+        return { cakeClicks: 0, messages: [] };
+      }
+      
+      // Small delay before retry
+      new Promise(resolve => setTimeout(resolve, 100));
+    }
   }
+  
+  // This should never happen due to the return in the loop above
+  return { cakeClicks: 0, messages: [] };
+}
+
+// Helper function to write to the database with retries
+function writeDB(data: DB): boolean {
+  let attempts = 0;
+  const maxAttempts = 3;
+  
+  while (attempts < maxAttempts) {
+    try {
+      // Ensure the data has the expected structure before writing
+      const safeData: DB = {
+        cakeClicks: typeof data.cakeClicks === 'number' ? data.cakeClicks : 0,
+        messages: Array.isArray(data.messages) ? data.messages : []
+      };
+      
+      fs.writeFileSync(DB_PATH, JSON.stringify(safeData, null, 2), 'utf8');
+      console.log('Successfully wrote to database');
+      return true;
+    } catch (error) {
+      console.error(`Error writing to database (attempt ${attempts + 1}/${maxAttempts}):`, error);
+      attempts++;
+      
+      if (attempts >= maxAttempts) {
+        console.error('All write attempts failed');
+        return false;
+      }
+      
+      // Small delay before retry
+      new Promise(resolve => setTimeout(resolve, 100));
+    }
+  }
+  
+  // This should never happen due to the return in the loop above
+  return false;
 }
 
 // GET handler to retrieve data
 export async function GET() {
-  const data = readDB();
-  
-  // Set cache control headers to prevent caching
-  return new NextResponse(JSON.stringify(data), {
-    headers: {
-      'Content-Type': 'application/json',
-      'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
-      'Pragma': 'no-cache',
-      'Expires': '0'
-    }
-  });
+  try {
+    const data = readDB();
+    
+    // Set strong cache control headers to prevent caching
+    return new NextResponse(JSON.stringify(data), {
+      headers: {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+        'Surrogate-Control': 'no-store'
+      }
+    });
+  } catch (error) {
+    console.error('Error in GET handler:', error);
+    return new NextResponse(JSON.stringify({ error: 'Internal server error' }), {
+      status: 500,
+      headers: {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-store, no-cache'
+      }
+    });
+  }
 }
 
 // POST handler to update data
@@ -55,16 +127,17 @@ export async function POST(request: NextRequest) {
     const data = readDB();
     const body = await request.json();
     
-    // Update cake clicks if provided - always increment by 1
-    if (body.incrementCakeClicks) {
+    // Update cake clicks if incrementCakeClicks is provided
+    if (body.incrementCakeClicks === true) {
       data.cakeClicks = (data.cakeClicks || 0) + 1;
       console.log('Incremented cake clicks to:', data.cakeClicks);
     }
     
     // Add new message if provided
     if (body.message && typeof body.message === 'string' && body.message.trim()) {
-      // Add the new message to the front of the array
-      if (!data.messages) data.messages = [];
+      if (!Array.isArray(data.messages)) {
+        data.messages = [];
+      }
       data.messages.unshift(body.message.trim());
       console.log('Added new message:', body.message.trim());
       
@@ -84,7 +157,8 @@ export async function POST(request: NextRequest) {
           'Content-Type': 'application/json',
           'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
           'Pragma': 'no-cache',
-          'Expires': '0'
+          'Expires': '0',
+          'Surrogate-Control': 'no-store'
         }
       });
     } else {

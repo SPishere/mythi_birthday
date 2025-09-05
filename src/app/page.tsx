@@ -85,40 +85,48 @@ function MessageBoard() {
   const [messages, setMessages] = useState<string[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   
-  // Function to load messages from the database
+  // Function to load messages from the database with cache-busting
   const loadMessages = async () => {
     try {
-      const response = await fetch('/api/db?nocache=' + Date.now());
+      // Add timestamp to prevent caching
+      const response = await fetch(`/api/db?nocache=${Date.now()}`);
       if (!response.ok) {
-        throw new Error('Network response was not ok');
+        throw new Error('Failed to load messages');
       }
       const data = await response.json();
-      setMessages(data.messages || []);
+      
+      // Ensure messages is always an array
+      setMessages(Array.isArray(data.messages) ? data.messages : []);
       setIsLoading(false);
+      setError(null);
     } catch (error) {
       console.error('Error loading messages:', error);
       setIsLoading(false);
+      setError('Failed to load messages');
     }
   };
   
   // Load messages on component mount and set up auto-refresh
   useEffect(() => {
-    // Initial load
-    loadMessages();
+    loadMessages(); // Initial load
     
-    // Set up refresh interval
+    // Set up polling for real-time updates
     const intervalId = setInterval(loadMessages, 2000);
     
-    // Clean up on unmount
+    // Clean up interval on component unmount
     return () => clearInterval(intervalId);
   }, []);
   
-  // Handle sending a new message
+  // Save a new message to the database
   const handleSendMessage = async () => {
     if (!input.trim()) return;
     
     const messageToSend = input.trim();
+    
+    // Optimistic UI update
+    setMessages(prev => [messageToSend, ...prev]);
     setInput("");
     
     try {
@@ -134,10 +142,12 @@ function MessageBoard() {
         throw new Error('Failed to send message');
       }
       
-      // Reload messages to show the new one
-      loadMessages();
+      // Force reload messages to get server state
+      await loadMessages();
     } catch (error) {
-      console.error('Error sending message:', error);
+      console.error('Error saving message:', error);
+      // If error, reload to get correct state
+      loadMessages();
     }
   };
   
@@ -159,8 +169,10 @@ function MessageBoard() {
       </div>
       {isLoading ? (
         <p className="text-gray-500">Loading messages...</p>
+      ) : error ? (
+        <p className="text-red-500">{error}. Try refreshing the page.</p>
       ) : (
-        <ul className="space-y-2 max-h-[350px] overflow-y-auto">
+        <ul className="space-y-2 max-h-[200px] overflow-y-auto">
           {messages.length > 0 ? (
             messages.map((msg, idx) => (
               <li key={idx} className="bg-yellow-200 rounded-lg px-4 py-2 text-lg font-semibold">
@@ -180,37 +192,43 @@ function MessageBoard() {
 function MiniGame() {
   const [score, setScore] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   
-  // Function to load the current cake click count
+  // Function to load the current cake click count with cache-busting
   const loadClickCount = async () => {
     try {
-      const response = await fetch('/api/db?nocache=' + Date.now());
+      // Add timestamp to prevent caching
+      const response = await fetch(`/api/db?nocache=${Date.now()}`);
       if (!response.ok) {
         throw new Error('Network response was not ok');
       }
       const data = await response.json();
-      setScore(data.cakeClicks || 0);
+      setScore(typeof data.cakeClicks === 'number' ? data.cakeClicks : 0);
       setIsLoading(false);
+      setError(null);
     } catch (error) {
       console.error('Error loading cake clicks:', error);
       setIsLoading(false);
+      setError('Failed to load cake clicks');
     }
   };
   
   // Load click count on component mount and set up auto-refresh
   useEffect(() => {
-    // Initial load
-    loadClickCount();
+    loadClickCount(); // Initial load
     
-    // Set up refresh interval
+    // Set up polling for real-time updates
     const intervalId = setInterval(loadClickCount, 2000);
     
-    // Clean up on unmount
+    // Clean up interval on component unmount
     return () => clearInterval(intervalId);
   }, []);
   
-  // Handle cake click
+  // Handle cake click - using incrementCakeClicks instead of setting absolute value
   const handleClick = async () => {
+    // Optimistic UI update
+    setScore(prevScore => prevScore + 1);
+    
     try {
       const response = await fetch('/api/db', {
         method: 'POST',
@@ -224,13 +242,12 @@ function MiniGame() {
         throw new Error('Failed to increment cake clicks');
       }
       
-      // Update local state optimistically
-      setScore(prevScore => prevScore + 1);
-      
-      // Then load the real count from the server
-      loadClickCount();
+      // Force reload the real count from the server
+      await loadClickCount();
     } catch (error) {
       console.error('Error incrementing cake clicks:', error);
+      // If error, reload to get correct state
+      loadClickCount();
     }
   };
   
@@ -243,9 +260,13 @@ function MiniGame() {
       >
         🎂
       </button>
-      <p className="mt-4 text-xl font-bold text-purple-700">
-        {isLoading ? "Loading..." : `Cake Clicks: ${score}`}
-      </p>
+      {error ? (
+        <p className="mt-4 text-red-500 font-bold">{error}</p>
+      ) : (
+        <p className="mt-4 text-xl font-bold text-purple-700">
+          {isLoading ? "Loading..." : `Cake Clicks: ${score}`}
+        </p>
+      )}
     </div>
   );
 }
